@@ -1,0 +1,196 @@
+services:
+  # === HDFS ===
+  namenode:
+    image: apache/hadoop:3.3.6
+    container_name: namenode
+    hostname: namenode
+    user: root
+    entrypoint: ["/bin/bash", "/scripts/start-namenode.sh"]
+    command: ["hdfs", "namenode"]
+    ports:
+      - "9870:9870"     # NameNode Web UI
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      HDFS_NAMENODE_USER: root
+      HDFS_DATANODE_USER: root
+      HDFS_SECONDARYNAMENODE_USER: root
+      YARN_RESOURCEMANAGER_USER: root
+      YARN_NODEMANAGER_USER: root
+    volumes:
+      - namenode_data:/opt/hadoop/dfs/name
+      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./config/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+      - ./config/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml
+      - ./scripts/start-namenode.sh:/scripts/start-namenode.sh
+      - ./data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9870/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hadoop-net
+
+  datanode:
+    image: apache/hadoop:3.3.6
+    container_name: datanode
+    hostname: datanode
+    user: root
+    command: ["hdfs", "datanode"]
+    ports:
+      - "9864:9864"     # DataNode Web UI
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      HDFS_NAMENODE_USER: root
+      HDFS_DATANODE_USER: root
+      HDFS_SECONDARYNAMENODE_USER: root
+      YARN_RESOURCEMANAGER_USER: root
+      YARN_NODEMANAGER_USER: root
+    volumes:
+      - datanode_data:/opt/hadoop/dfs/data
+      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./config/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+      - ./config/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml
+    depends_on:
+      namenode:
+        condition: service_healthy
+    networks:
+      - hadoop-net
+
+  # === YARN ===
+  resourcemanager:
+    image: apache/hadoop:3.3.6
+    container_name: resourcemanager
+    hostname: resourcemanager
+    user: root
+    command: ["yarn", "resourcemanager"]
+    ports:
+      - "8088:8088"     # ResourceManager Web UI
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      HDFS_NAMENODE_USER: root
+      HDFS_DATANODE_USER: root
+      HDFS_SECONDARYNAMENODE_USER: root
+      YARN_RESOURCEMANAGER_USER: root
+      YARN_NODEMANAGER_USER: root
+    volumes:
+      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./config/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+      - ./config/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml
+    depends_on:
+      namenode:
+        condition: service_healthy
+    networks:
+      - hadoop-net
+
+  nodemanager:
+    image: apache/hadoop:3.3.6
+    container_name: nodemanager
+    hostname: nodemanager
+    user: root
+    command: ["yarn", "nodemanager"]
+    ports:
+      - "8042:8042"     # NodeManager Web UI
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      HDFS_NAMENODE_USER: root
+      HDFS_DATANODE_USER: root
+      HDFS_SECONDARYNAMENODE_USER: root
+      YARN_RESOURCEMANAGER_USER: root
+      YARN_NODEMANAGER_USER: root
+    volumes:
+      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./config/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+      - ./config/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml
+    depends_on:
+      - resourcemanager
+    networks:
+      - hadoop-net
+
+  # === MapReduce History ===
+  historyserver:
+    image: apache/hadoop:3.3.6
+    container_name: historyserver
+    hostname: historyserver
+    user: root
+    command: ["mapred", "historyserver"]
+    ports:
+      - "19888:19888"   # HistoryServer Web UI
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      HDFS_NAMENODE_USER: root
+      HDFS_DATANODE_USER: root
+      HDFS_SECONDARYNAMENODE_USER: root
+      YARN_RESOURCEMANAGER_USER: root
+      YARN_NODEMANAGER_USER: root
+    volumes:
+      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./config/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+      - ./config/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml
+    depends_on:
+      namenode:
+        condition: service_healthy
+    networks:
+      - hadoop-net
+
+  # === Apache Spark ===
+  spark-master:
+    image: apache/spark:3.5.1
+    container_name: spark-master
+    hostname: spark-master
+    user: root
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]
+    ports:
+      - "8080:8080"     # Spark Master Web UI
+      - "7077:7077"     # Spark Master port
+    environment:
+      SPARK_HOME: /opt/spark
+      HADOOP_CONF_DIR: /opt/hadoop-conf
+      SPARK_MASTER_HOST: spark-master
+    volumes:
+      - ./config/core-site.xml:/opt/hadoop-conf/core-site.xml
+      - ./config/hdfs-site.xml:/opt/hadoop-conf/hdfs-site.xml
+      - ./config/yarn-site.xml:/opt/hadoop-conf/yarn-site.xml
+      - ./config/mapred-site.xml:/opt/hadoop-conf/mapred-site.xml
+      - ./data:/data
+    depends_on:
+      namenode:
+        condition: service_healthy
+    networks:
+      - hadoop-net
+
+  spark-worker:
+    image: apache/spark:3.5.1
+    container_name: spark-worker
+    hostname: spark-worker
+    user: root
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077"]
+    ports:
+      - "8081:8081"     # Spark Worker Web UI
+    environment:
+      SPARK_HOME: /opt/spark
+      HADOOP_CONF_DIR: /opt/hadoop-conf
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 2g
+    volumes:
+      - ./config/core-site.xml:/opt/hadoop-conf/core-site.xml
+      - ./config/hdfs-site.xml:/opt/hadoop-conf/hdfs-site.xml
+      - ./config/yarn-site.xml:/opt/hadoop-conf/yarn-site.xml
+      - ./config/mapred-site.xml:/opt/hadoop-conf/mapred-site.xml
+    depends_on:
+      - spark-master
+    networks:
+      - hadoop-net
+
+volumes:
+  namenode_data:
+  datanode_data:
+
+networks:
+  hadoop-net:
+    driver: bridge
