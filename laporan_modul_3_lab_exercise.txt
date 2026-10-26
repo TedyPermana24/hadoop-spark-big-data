@@ -1,0 +1,87 @@
+3 Latihan Laboratorium (Lab Exercise) - Data Storage and Management
+
+Pada latihan ini, sistem penyimpanan terdistribusi Hadoop Distributed File System 
+(HDFS) dan kerangka kerja komputasi Apache Spark dijalankan menggunakan lingkungan 
+kontainer Docker. Komponen yang digunakan meliputi NameNode, DataNode, Spark Master, 
+dan Spark Worker. 
+Penggunaan Docker memudahkan proses deployment dan isolasi lingkungan kluster terdistribusi, 
+sehingga pengujian sistem berkas terdistribusi dan eksekusi komputasi dapat langsung dilakukan.
+
+(Gambar 1: Tangkapan layar terminal docker ps atau Docker Desktop yang memperlihatkan 
+kontainer Hadoop dan Spark berjalan aktif/running)
+
+Pada tahap awal pengujian HDFS, layanan sistem berkas terdistribusi dipastikan telah aktif 
+pada kluster. Pengujian dilakukan dengan membuat direktori baru pada HDFS bernama 
+/user/student menggunakan perintah hdfs dfs -mkdir. Selanjutnya, dibuat sebuah berkas 
+teks lokal bernama localfile.txt yang kemudian dimasukkan ke dalam direktori HDFS tersebut 
+menggunakan perintah hdfs dfs -put.
+
+Untuk memastikan bahwa berkas telah berhasil diterima dan tersimpan di dalam HDFS, 
+dilakukan pengecekan daftar berkas menggunakan perintah hdfs dfs -ls serta menampilkan 
+isi teks dari berkas tersebut secara langsung dari HDFS menggunakan perintah hdfs dfs -cat.
+
+(Gambar 2: Tangkapan layar terminal eksekusi perintah HDFS dasar:
+hdfs dfs -mkdir -p /user/student
+hdfs dfs -put /data/modul_3/lab_exercise/localfile.txt /user/student/
+hdfs dfs -ls /user/student/
+hdfs dfs -cat /user/student/localfile.txt)
+
+Berdasarkan hasil eksekusi perintah tersebut, direktori /user/student berhasil dibuat 
+dan berkas localfile.txt telah tersimpan di dalam HDFS serta isi teksnya dapat ditampilkan 
+dengan tepat.
+
+Hasil penyimpanan berkas di HDFS juga dapat divalidasi secara visual melalui antarmuka 
+web Hadoop NameNode (Web UI).
+
+(Gambar 3: Tangkapan layar antarmuka web Hadoop NameNode Utilities -> Browse the file system 
+pada path /user/student yang menampilkan berkas localfile.txt)
+
+Selanjutnya, dilakukan pengujian keandalan replikasi dan pemetaan penempatan blok data 
+pada HDFS menggunakan utility fsck (File System Check) dengan perintah:
+hdfs fsck /user/student/localfile.txt -files -blocks -locations
+
+Pengujian ini bertujuan untuk membuktikan karakteristik sistem berkas terdistribusi, 
+di mana file yang diunggah dikelola oleh NameNode sebagai metadata dan disimpan secara 
+fisik dalam bentuk blok pada DataNode.
+
+(Gambar 4: Tangkapan layar terminal perintah hdfs fsck yang memperlihatkan status HEALTHY, 
+informasi blok data, faktor replikasi, dan lokasi IP/port DataNode yang menyimpannya)
+
+Berdasarkan hasil pemeriksaan fsck, sistem berkas HDFS dinyatakan dalam kondisi HEALTHY. 
+Hal ini membuktikan bahwa blok data terdistribusi telah terdaftar dengan benar pada DataNode 
+dan siap melayani operasi baca/tulis.
+
+Tahapan berikutnya adalah pengujian pemrosesan dan perbandingan format penyimpanan data 
+antara format baris (Row-based / CSV) dengan format kolom (Columnar Storage / Parquet) 
+menggunakan Apache Spark (PySpark). Data masukan yang digunakan adalah dataset riil rekam 
+medis pasien (EHR) bernama full_dataset_ehr.csv yang dimasukkan ke dalam HDFS sebagai 
+/user/student/data.csv.
+
+(Gambar 5: Tangkapan layar terminal saat mengunggah dataset data.csv ke HDFS:
+hdfs dfs -put /data/full_dataset_ehr.csv /user/student/data.csv
+serta verifikasi hdfs dfs -ls /user/student/)
+
+Setelah data masukan tersedia di HDFS, program PySpark dijalankan untuk:
+1. Menginisialisasi SparkSession dengan nama aplikasi "StorageExample".
+2. Membaca data CSV dari HDFS (hdfs:///user/student/data.csv) dengan mengaktifkan opsi header 
+   dan inferSchema.
+3. Mengonversi dan menyimpan data ke dalam format kolom (Columnar Storage) Apache Parquet 
+   pada HDFS di direktori hdfs:///user/student/data_parquet dengan mode "overwrite".
+4. Membaca kembali berkas Parquet dari HDFS dan menampilkan 5 baris pertama data ke layar 
+   terminal menggunakan metode .show(5).
+
+Format Parquet mengorganisir data per kolom dan menerapkan kompresi data yang efisien 
+(Snappy compression), sehingga kueri analitik (OLAP) hanya perlu membaca kolom-kolom 
+yang relevan tanpa harus memindai seluruh baris data. Hal ini secara signifikan meningkatkan 
+kecepatan pemrosesan kueri pada ekosistem Big Data.
+
+(Gambar 6: Tangkapan layar terminal eksekusi spark-submit pyspark_parquet.py yang 
+memperlihatkan log inisialisasi Spark, DAGScheduler job finished, dan tabel output data 
+5 baris pertama dari Parquet melalui df_parquet.show(5))
+
+(Gambar 7: Tangkapan layar antarmuka web Hadoop NameNode pada path /user/student/data_parquet 
+yang memperlihatkan berkas partisi hasil konversi .snappy.parquet)
+
+Dari keseluruhan hasil pengujian laboratorium ini, dapat disimpulkan bahwa pengelolaan 
+penyimpanan terdistribusi menggunakan HDFS serta transformasi data ke format kolom 
+(Parquet) menggunakan Apache Spark telah berhasil diimplementasikan dan berjalan dengan baik.

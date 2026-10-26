@@ -147,7 +147,7 @@ services:
     command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]
     ports:
       - "8080:8080"     # Spark Master Web UI
-      - "7077:7077"     # Spark Master port
+      - "17077:7077"    # Spark Master port (mapped to 17077 on host to avoid Windows Hyper-V reserved range 7016-7115)
     environment:
       SPARK_HOME: /opt/spark
       HADOOP_CONF_DIR: /opt/hadoop-conf

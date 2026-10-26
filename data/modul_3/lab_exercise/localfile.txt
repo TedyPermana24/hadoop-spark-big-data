@@ -1,0 +1,4 @@
+HDFS Test File - Module 3: Data Storage and Management
+Nama: Lab Exercise - Working with HDFS
+Topik: Big Data Storage & Parquet Columnar Format
+Deskripsi: File lokal ini digunakan untuk menguji perintah HDFS (mkdir, put, ls, cat, dan fsck) pada kluster terdistribusi Hadoop.
