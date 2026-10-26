@@ -1,0 +1,15 @@
+{
+  "total_records": 10000,
+  "csv_bytes": 1172817,
+  "csv_mb": 1.12,
+  "parquet_bytes": 206196,
+  "parquet_mb": 0.2,
+  "saving_pct": 82.4,
+  "latency_q1_csv_ms": 4465.28,
+  "latency_q1_parquet_ms": 1426.33,
+  "speedup_q1": 3.13,
+  "latency_q2_csv_ms": 882.5,
+  "latency_q2_parquet_ms": 431.54,
+  "speedup_q2": 2.05,
+  "timestamp": "2026-10-26 16:53:45"
+}

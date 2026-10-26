@@ -33,5 +33,5 @@ services:
 
 networks:
   hadoop-net:
-    name: hadoop-spark_hadoop-net
+    name: hadoop-spark-big-data_hadoop-net
     external: true
