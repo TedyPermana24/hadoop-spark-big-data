@@ -1,0 +1,12 @@
+Condition	Total_Cases	Adverse_Count	Mortality_Rate
+Unknown	2	1	50.00%
+Coronary Artery Disease	1203	512	42.56%
+Chronic Kidney Disease	1227	515	41.97%
+Lung Cancer	1189	452	38.02%
+Type 2 Diabetes	1227	465	37.90%
+Hypertension	1172	413	35.24%
+Multiple Sclerosis	725	184	25.38%
+GERD	700	156	22.29%
+Depression	871	170	19.52%
+Back Pain	854	165	19.32%
+Asthma	830	150	18.07%

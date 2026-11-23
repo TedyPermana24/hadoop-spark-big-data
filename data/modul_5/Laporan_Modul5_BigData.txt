@@ -1,0 +1,122 @@
+Tugas MK. IFB-451 BIG DATA
+
+
+Laporan Modul 5
+
+
+
+
+Disusun oleh :
+
+
+15-2023-057	-		Fathurrahman Pratama Putra
+15-2023-073	-		Dindin Imanudin
+15-2023-124	-	Muhammad Fariz Alfaritzi
+15-2023-131	-	Viktorikus Nokia Laksanama F
+15-2023-151	-	Tedy Sukma Permana
+
+
+
+
+
+
+
+
+
+
+Tgl. Penugasan 	:	
+Tgl. Penyerahan	:	
+
+
+
+
+ 
+
+
+
+
+Prodi Informatika
+Fakultas Teknologi Industri
+Institut Teknologi Nasional
+Bandung
+2026
+
+1	Pendahuluan
+Modul ini membahas paradigma pemrograman komputasi terdistribusi MapReduce pada ekosistem Big Data Apache Hadoop. Pembahasan mencakup prinsip kerja model MapReduce yang terdiri dari fungsi Map, fase Shuffle & Sort, dan fungsi Reduce, pengaliran pasangan kunci-nilai (key-value pairs), optimasi efisiensi transfer data menggunakan Combiner (mini-reducer lokal), serta perutean partisi ke Reducer melalui mekanisme Partitioner. Modul ini menguji implementasi program MapReduce baik menggunakan bahasa Java melalui Native MapReduce API maupun bahasa Python melalui utility Hadoop Streaming. Penerapan praktis mencakup tiga kelas permasalahan fundamental Big Data: penghitungan frekuensi kata (Word Count), analisis berkas log sistem (Log Analysis), dan penggabungan dua himpunan data terpisah (Reduce-Side Join). Selanjutnya, seluruh konsep tersebut diimplementasikan ke dalam studi kasus analitik kesehatan skala besar pada 10.000 data rekam medis elektronik (EHR) terdistribusi di HDFS yang hasilnya diintegrasikan secara langsung ke antarmuka web dashboard klinisi pada Serving Layer.
+
+2	Latihan Laboratorium (Lab Exercise)
+Pada latihan ini, sistem komputasi terdistribusi Apache Hadoop dijalankan menggunakan lingkungan kontainer Docker. Komponen yang digunakan meliputi NameNode sebagai pengelola metadata kluster dan DataNode sebagai penyimpan blok data. Penggunaan Docker memudahkan isolasi lingkungan serta menjaga konsistensi eksekusi. Tahap awal dilakukan dengan memastikan layanan HDFS aktif, membuat direktori kerja /user/student menggunakan perintah hdfs dfs -mkdir, kemudian mengunggah berkas sample.txt, server_logs.txt, patients_info.txt, dan patients_diagnosis.txt menggunakan perintah hdfs dfs -put.
+
+[Placeholder Gambar 1. Kontainer Docker Hadoop yang aktif]
+
+Keberhasilan penyimpanan diverifikasi menggunakan perintah hdfs dfs -ls dan pemeriksaan penempatan blok melalui Hadoop NameNode Web UI pada port 9870. Dengan demikian, berkas masukan dipastikan telah tersimpan pada direktori HDFS dan dapat diakses oleh proses MapReduce.
+
+[Placeholder Gambar 2. Eksekusi perintah HDFS dan daftar berkas pada Web UI]
+
+Implementasi Word Count menggunakan Python melalui Hadoop Streaming memanfaatkan standard input (stdin) dan standard output (stdout). Mapper (mapper_wordcount.py) membaca teks baris demi baris, memecahnya menjadi token, membersihkan tanda baca, mengubah huruf menjadi kecil, lalu menghasilkan pasangan (kata, 1). Combiner (combiner_wordcount.py) menjumlahkan frekuensi kata secara lokal pada node Mapper untuk mengurangi data yang dikirim melalui jaringan. Reducer (reducer_wordcount.py) menerima data yang telah dikelompokkan dan diurutkan pada fase Shuffle & Sort, kemudian menjumlahkan frekuensi setiap kata. Job dijalankan menggunakan Hadoop Streaming JAR dengan parameter input, output, mapper, combiner, dan reducer.
+
+[Placeholder Gambar 3. Kode Mapper Word Count Python]
+
+[Placeholder Gambar 4. Kode Combiner Word Count Python]
+
+[Placeholder Gambar 5. Kode Reducer Word Count Python]
+
+[Placeholder Gambar 6. Eksekusi Hadoop Streaming dan hasil Word Count Python]
+
+Word Count juga diimplementasikan menggunakan Java Native MapReduce API melalui kelas WordCount.java. TokenizerMapper membaca teks dan menghasilkan pasangan (word, one) bertipe Text dan IntWritable; IntSumReducer menjumlahkan seluruh nilai untuk setiap kata dan digunakan pula sebagai Combiner; sedangkan Driver menginisialisasi Configuration dan Job, mendaftarkan Mapper, Combiner, Reducer, tipe keluaran, serta direktori input dan output. Program dikompilasi menggunakan Hadoop classpath, dikemas menjadi JAR, lalu dijalankan pada kluster. Hasil Word Count Java dibandingkan dengan keluaran Python untuk memeriksa kesetaraan hasil.
+
+[Placeholder Gambar 7. Kode WordCount.java (Mapper, Reducer, dan Driver)]
+
+[Placeholder Gambar 8. Eksekusi Java MapReduce dan hasil Word Count]
+
+Pada fase Shuffle & Sort, keluaran Mapper dikumpulkan, dipartisi, dikirim melalui jaringan, dan diurutkan berdasarkan kunci sebelum diterima Reducer. Hadoop menggunakan HashPartitioner secara default dengan rumus partition = (key.hashCode() & Integer.MAX_VALUE) % numReduceTasks. Mekanisme ini memastikan seluruh pasangan dengan kunci yang sama dikirim ke Reducer yang sama. Keluaran Mapper ditampung pada buffer memori, diurutkan secara lokal, lalu ditulis sementara ke disk ketika ambang buffer tercapai. Jika Combiner diaktifkan, agregasi lokal dilakukan sebelum data ditransfer. Reducer kemudian menggabungkan data terurut sebelum menjalankan fungsi reduce(). Partitioner khusus dapat diterapkan untuk mengatasi ketimpangan distribusi data (data skew).
+
+[Placeholder Gambar 9. Diagram alur Map, Combiner, Partitioner, Shuffle & Sort, dan Reduce]
+
+Log Analysis diterapkan untuk mengekstrak pola operasional dari server_logs.txt. Mapper membaca setiap entri, mengambil kode status HTTP dan level log, lalu menghasilkan kategori HTTP_[status] dan LEVEL_[level] dengan nilai 1. Reducer menjumlahkan frekuensi setiap kategori. Dari 12 entri log, diperoleh HTTP_200 sebanyak 7, HTTP_404 sebanyak 2, HTTP_500 sebanyak 3, serta LEVEL_INFO sebanyak 6, LEVEL_WARN sebanyak 3, dan LEVEL_ERROR sebanyak 3.
+
+[Placeholder Gambar 10. Kode Mapper dan Reducer Log Analysis]
+
+[Placeholder Gambar 11. Hasil eksekusi Log Analysis]
+
+Reduce-Side Join digunakan untuk menggabungkan patients_info.txt yang berisi identitas dan wilayah pasien dengan patients_diagnosis.txt yang berisi diagnosis dan tingkat keparahan berdasarkan patient_id. Mapper membaca kedua sumber data dan menambahkan tag DEMO atau DIAG. Shuffle & Sort mengirim seluruh data dengan patient_id yang sama ke Reducer, kemudian Reducer menggabungkan nama, wilayah, diagnosis, dan tingkat keparahan menjadi satu rekaman terpadu. Hasil pengujian menunjukkan data pasien berhasil dipadukan berdasarkan kunci relasional.
+
+[Placeholder Gambar 12. Kode Mapper dan Reducer Reduce-Side Join]
+
+[Placeholder Gambar 13. Hasil eksekusi Reduce-Side Join]
+
+3	Studi Kasus Kesehatan (Health Informatics Case Study)
+Rumah sakit mengelola repositori data pasien berskala besar yang mencakup rekam medis elektronik (Electronic Health Records / EHR). Untuk mendukung analitik klinis secara terdistribusi, diterapkan HDFS sebagai repositori data historis, Hadoop MapReduce sebagai mesin komputasi paralel, dan Serving Layer Dashboard sebagai antarmuka penyajian hasil analitik bagi dokter serta manajemen rumah sakit. Dataset full_dataset_ehr.csv berisi 10.000 riwayat pasien dengan 20 atribut, antara lain patient_id, usia, jenis kelamin, wilayah, diagnosis, tingkat keparahan, tekanan darah sistolik dan diastolik, detak jantung, kolesterol, BMI, serta status adverse_outcome. Dataset diunggah ke HDFS pada direktori /hospital/mapreduce/full_dataset_ehr.csv.
+
+[Placeholder Gambar 14. Dataset EHR pada direktori HDFS]
+
+Job 1 menganalisis jumlah pasien berisiko tinggi pada setiap wilayah. Pasien dikategorikan berisiko tinggi apabila memiliki tekanan darah sistolik >= 140 mmHg, kolesterol >= 240 mg/dL, atau usia >= 60 tahun. Mapper memvalidasi kondisi klinis dan menghasilkan nama wilayah dengan nilai 1, Combiner melakukan agregasi lokal, sedangkan Reducer menjumlahkan pasien berisiko tinggi per wilayah. Hasil pengujian menunjukkan 6.508 dari 10.000 pasien (65,08%) masuk kategori risiko tinggi. Wilayah North mencatat 1.341 pasien, South 1.314 pasien, Central 1.304 pasien, West 1.298 pasien, dan East 1.251 pasien.
+
+[Placeholder Gambar 15. Kode Mapper dan Reducer Job 1]
+
+[Placeholder Gambar 16. Hasil eksekusi Job 1]
+
+Job 2 menganalisis proporsi adverse outcome berdasarkan diagnosis penyakit. Mapper menghasilkan nama penyakit sebagai kunci dan pasangan nilai (adverse_flag, 1), sedangkan Reducer menghitung jumlah pasien dan jumlah adverse outcome untuk memperoleh persentasenya. Hasil pengujian menunjukkan CAD memiliki persentase tertinggi sebesar 42,56% (512 dari 1.203 pasien), diikuti CKD sebesar 41,97% (515 dari 1.227 pasien), Lung Cancer sebesar 38,02% (452 dari 1.189 pasien), dan Type 2 Diabetes sebesar 37,90% (465 dari 1.227 pasien).
+
+[Placeholder Gambar 17. Kode Mapper dan Reducer Job 2]
+
+[Placeholder Gambar 18. Hasil eksekusi Job 2]
+
+Job 3 memetakan profil tekanan darah sistolik berdasarkan diagnosis dan tingkat keparahan. Mapper membentuk composite key dari kombinasi penyakit dan tingkat keparahan, sedangkan Reducer menghitung rata-rata tekanan darah sistolik dan jumlah kasus pada setiap kelompok. Hasil analisis menunjukkan nilai rata-rata tertinggi terdapat pada CAD Severe sebesar 164,63 mmHg (215 pasien), Hypertension Severe sebesar 164,15 mmHg (210 pasien), dan CKD Severe sebesar 163,90 mmHg (227 pasien).
+
+[Placeholder Gambar 19. Kode Mapper dan Reducer Job 3]
+
+[Placeholder Gambar 20. Hasil eksekusi Job 3]
+
+Hasil ketiga job diintegrasikan ke dashboard web klinisi pada http://localhost:5000/mapreduce dan REST API pada http://localhost:5000/api/mapreduce_results. Dashboard menyajikan indikator utama pasien berisiko tinggi, penyakit dengan adverse outcome tertinggi, dan tekanan darah rata-rata tertinggi; diagram alur MapReduce; distribusi pasien berisiko tinggi per wilayah; tabel analitik adverse outcome; serta profil tekanan darah sistolik berdasarkan diagnosis dan tingkat keparahan. Integrasi ini menunjukkan alur pengolahan data dari penyimpanan HDFS, komputasi MapReduce, hingga penyajian hasil melalui Serving Layer.
+
+[Placeholder Gambar 21. Antarmuka web MapReduce Analytics pada Serving Dashboard]
+
+[Placeholder Gambar 22. Respons JSON pada endpoint REST API mapreduce_results]
+
+3.1	Luaran yang Diharapkan (Expected Outcomes)
+Implementasi arsitektur komputasi terdistribusi MapReduce pada data kesehatan skala besar ini memberikan manfaat langsung bagi dua pemangku kepentingan:
+1.	Rumah Sakit dan Tim Data Engineer
+Membuktikan keandalan ekosistem Apache Hadoop dalam memproses komputasi analitik terdistribusi pada 10.000 rekam medis elektronik (EHR) secara paralel tanpa kendala memori, mengoptimalkan bandwidth kluster melalui penerapan Combiner yang memangkas volume pertukaran data intermediate sebelum fase Shuffle & Sort, menjamin keandalan distribusi data menggunakan HashPartitioner, serta menyajikan pipeline otomatis dari penyimpanan blok HDFS hingga ke antarmuka web Serving Dashboard.
+2.	Dokter dan Peneliti Medis
+Memperoleh bukti klinis empiris untuk memetakan 6.508 pasien berisiko tinggi (65,08% dari total populasi) dengan konsentrasi prioritas di wilayah North (1.341 pasien) dan South (1.314 pasien), mengidentifikasi penyakit dengan adverse outcome rate tertinggi yaitu Coronary Artery Disease (42,56%) dan Chronic Kidney Disease (41,97%), serta memetakan profil tekanan darah sistolik kritis pada kategori Severe (>164 mmHg) untuk percepatan tindakan preventif dan alokasi ranjang perawatan intensif (ICU).

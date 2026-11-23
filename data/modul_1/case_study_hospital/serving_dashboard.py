@@ -1,20 +1,24 @@
 """
 ================================================================================
-SERVING LAYER: Clinician Dashboard & Storage Architecture Platform
+SERVING LAYER: Clinician Dashboard, Storage & MapReduce Analytics Platform
 ================================================================================
 Menyajikan data dari:
 1. Real-Time ICU Dashboard (Speed & Batch Layer - Kafka + HDFS).
 2. Storage & Benchmarks (HDFS Storage, Row vs Columnar Parquet, CAP Theorem NoSQL).
+3. MapReduce Analytics (Modul 5 Case Study: High-Risk Regional Distribution,
+   Mortality by Condition, and Blood Pressure Profiling).
 
 Halaman Web:
-- http://localhost:5000/         -> Real-Time ICU Dashboard
-- http://localhost:5000/storage  -> Storage & Benchmarks (atau /modul3)
+- http://localhost:5000/            -> Real-Time ICU Dashboard
+- http://localhost:5000/storage     -> Storage & Benchmarks (atau /modul3)
+- http://localhost:5000/mapreduce   -> MapReduce Analytics (atau /modul5)
 
 Endpoints REST API:
 - GET /api/vitals
 - GET /api/alerts
 - GET /api/patients
 - GET /api/storage_benchmarks
+- GET /api/mapreduce_results
 ================================================================================
 """
 
@@ -34,6 +38,10 @@ ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", ".."))
 EHR_FILE = os.path.join(BASE_DIR, "ehr_patients.json")
 FULL_EHR_CSV = os.path.join(ROOT_DIR, "data", "full_dataset_ehr.csv")
 BENCHMARK_JSON = os.path.join(ROOT_DIR, "data", "modul_3", "case_study", "benchmark_results.json")
+MAPREDUCE_DIR = os.path.join(ROOT_DIR, "data", "modul_5", "case_study", "output")
+JOB1_FILE = os.path.join(MAPREDUCE_DIR, "job1_highrisk_by_region.txt")
+JOB2_FILE = os.path.join(MAPREDUCE_DIR, "job2_mortality_by_condition.txt")
+JOB3_FILE = os.path.join(MAPREDUCE_DIR, "job3_bp_profile.txt")
 
 LATEST_VITALS = {}
 
@@ -157,6 +165,85 @@ def get_full_ehr_sample(limit=15):
     except Exception as e:
         print(f"Error reading CSV: {e}")
     return rows
+
+def get_mapreduce_results():
+    """Membaca output dari 3 job MapReduce (Modul 5 Case Study)."""
+    results = {
+        "job1_regions": [],
+        "job1_total_highrisk": 0,
+        "job2_mortality": [],
+        "job3_bp": []
+    }
+    
+    # Job 1: High risk by region
+    if os.path.exists(JOB1_FILE):
+        try:
+            with open(JOB1_FILE, "r", encoding="utf-8") as f:
+                reader = csv.reader(f, delimiter="\t")
+                next(reader, None)  # skip header: Region, High_Risk_Count
+                for row in reader:
+                    if len(row) >= 2:
+                        region = row[0].strip()
+                        count = int(row[1].strip())
+                        results["job1_regions"].append({"region": region, "count": count})
+                        results["job1_total_highrisk"] += count
+        except Exception as e:
+            print(f"Error parsing Job 1 output: {e}")
+
+    total = results["job1_total_highrisk"]
+    for item in results["job1_regions"]:
+        item["pct"] = round((item["count"] / total * 100), 2) if total > 0 else 0
+
+    # Job 2: Mortality by condition
+    if os.path.exists(JOB2_FILE):
+        try:
+            with open(JOB2_FILE, "r", encoding="utf-8") as f:
+                reader = csv.reader(f, delimiter="\t")
+                next(reader, None)  # skip header: Condition, Total_Cases, Adverse_Count, Mortality_Rate
+                for row in reader:
+                    if len(row) >= 4:
+                        cond = row[0].strip()
+                        if cond == "Unknown":
+                            continue  # skip outlier
+                        tot = int(row[1].strip())
+                        adv = int(row[2].strip())
+                        rate_str = row[3].strip()
+                        rate_val = float(rate_str.replace("%", ""))
+                        results["job2_mortality"].append({
+                            "condition": cond,
+                            "total": tot,
+                            "adverse": adv,
+                            "rate": rate_str,
+                            "rate_num": rate_val
+                        })
+        except Exception as e:
+            print(f"Error parsing Job 2 output: {e}")
+
+    # Job 3: BP Profile
+    if os.path.exists(JOB3_FILE):
+        try:
+            with open(JOB3_FILE, "r", encoding="utf-8") as f:
+                reader = csv.reader(f, delimiter="\t")
+                next(reader, None)  # skip header: Condition_Severity, Avg_Systolic_BP, Count
+                for row in reader:
+                    if len(row) >= 3:
+                        cond_sev = row[0].strip()
+                        parts = cond_sev.rsplit("_", 1)
+                        cond = parts[0] if len(parts) > 1 else cond_sev
+                        sev = parts[1] if len(parts) > 1 else "Unknown"
+                        avg_bp = float(row[1].strip())
+                        cnt = int(row[2].strip())
+                        results["job3_bp"].append({
+                            "condition_severity": cond_sev,
+                            "condition": cond,
+                            "severity": sev,
+                            "avg_systolic_bp": avg_bp,
+                            "count": cnt
+                        })
+        except Exception as e:
+            print(f"Error parsing Job 3 output: {e}")
+
+    return results
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SHARED CSS STYLES
@@ -543,6 +630,7 @@ HTML_TEMPLATE = """
             <nav class="nav-links">
                 <a href="/" class="nav-item active">Real-Time ICU Dashboard</a>
                 <a href="/storage" class="nav-item">Storage & Benchmarks</a>
+                <a href="/mapreduce" class="nav-item">MapReduce Analytics</a>
             </nav>
             <div class="status-indicator">
                 <span class="live-dot"></span> Active
@@ -902,6 +990,7 @@ STORAGE_TEMPLATE = """
             <nav class="nav-links">
                 <a href="/" class="nav-item">Real-Time ICU Dashboard</a>
                 <a href="/storage" class="nav-item active">Storage & Benchmarks</a>
+                <a href="/mapreduce" class="nav-item">MapReduce Analytics</a>
             </nav>
             <div class="status-indicator">
                 <span class="live-dot"></span> Active
@@ -1081,6 +1170,292 @@ STORAGE_TEMPLATE = """
 """
 
 # ─────────────────────────────────────────────────────────────────────────────
+# PAGE 3: MAPREDUCE CLINICAL ANALYTICS (MAPREDUCE_TEMPLATE)
+# ─────────────────────────────────────────────────────────────────────────────
+MAPREDUCE_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapReduce Clinical Analytics - University Hospital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        """ + SHARED_STYLES + """
+        .pipeline-flow {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .flow-step {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .flow-num {
+            font-size: 10px;
+            font-weight: 700;
+            color: #3b82f6;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .flow-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .flow-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .region-card-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .region-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .region-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .region-count {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .region-pct {
+            font-size: 11px;
+            color: #38bdf8;
+            font-weight: 500;
+        }
+
+        .two-column-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 36px;
+        }
+
+        .mortality-bar-bg {
+            background: var(--surface-elevated);
+            height: 6px;
+            border-radius: 3px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .mortality-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .badge-sev {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .badge-sev.severe { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-sev.moderate { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-sev.mild { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        .bp-val {
+            font-weight: 600;
+        }
+        .bp-val.critical { color: #f87171; }
+        .bp-val.warning { color: #fbbf24; }
+        .bp-val.normal { color: #34d399; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-group">
+            <h1>MapReduce Batch Clinical Analytics (Module 5)</h1>
+            <p>University Hospital · Batch Processing Layer (Map, Combiner, Shuffle & Sort, Reduce)</p>
+        </div>
+        <div class="nav-container">
+            <nav class="nav-links">
+                <a href="/" class="nav-item">Real-Time ICU Dashboard</a>
+                <a href="/storage" class="nav-item">Storage & Benchmarks</a>
+                <a href="/mapreduce" class="nav-item active">MapReduce Analytics</a>
+            </nav>
+            <div class="status-indicator">
+                <span class="live-dot"></span> Batch Ready
+            </div>
+        </div>
+    </header>
+
+    <!-- Metrics Summary Strip -->
+    <div class="metrics-strip">
+        <div class="metric-card">
+            <div class="metric-label">High-Risk Patients Identified</div>
+            <div class="metric-value">{{ "{:,}".format(data.job1_total_highrisk) }} Patients</div>
+            <div class="metric-desc">65.08% populasi terdeteksi berisiko tinggi (Sistolik ≥140 / Kolesterol ≥240 / Usia 60+)</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Highest Adverse Outcome Condition</div>
+            <div class="metric-value" style="color: #f87171;">Coronary Artery Disease</div>
+            <div class="metric-desc">Tingkat komplikasi fatal 42.56% (512 kasus adverse dari 1,203 pasien)</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Peak Systolic BP Profile (Mean)</div>
+            <div class="metric-value" style="color: #fbbf24;">164.63 mmHg</div>
+            <div class="metric-desc">CAD Severe (n=215) & Hypertension Severe (164.15 mmHg, n=210)</div>
+        </div>
+    </div>
+
+    <!-- MapReduce Architecture Flow Strip -->
+    <div class="section-header">
+        <span class="section-title">MapReduce Execution Flow & Architecture</span>
+    </div>
+    <div class="pipeline-flow">
+        <div class="flow-step">
+            <div class="flow-num">Stage 1 · Map</div>
+            <div class="flow-name">Input Splits & Map Function</div>
+            <div class="flow-desc">Membaca record EHR per baris, memvalidasi kriteria klinis, dan meng-emit intermediate key-value pairs (region / condition).</div>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">Stage 2 · Combiner</div>
+            <div class="flow-name">Local Combiner Optimization</div>
+            <div class="flow-desc">Melakukan mini-reduce lokal pada setiap DataNode untuk memangkas bandwidth jaringan saat data transfer antar cluster.</div>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">Stage 3 · Shuffle</div>
+            <div class="flow-name">Shuffle & Sort Network</div>
+            <div class="flow-desc">Partisi hash mentransfer key yang sama ke node Reducer target dan mengurutkannya secara terdistribusi di memori/disk.</div>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">Stage 4 · Reduce</div>
+            <div class="flow-name">Reduce & HDFS Write</div>
+            <div class="flow-desc">Agregasi global menghasilkan metrik regional, tingkat mortalitas, dan profil tekanan darah akhir ke HDFS/Serving Layer.</div>
+        </div>
+    </div>
+
+    <!-- Job 1: High-Risk Regional Distribution -->
+    <div class="section-header">
+        <span class="section-title">Job 1 · High-Risk Patient Distribution by Region (Target Intervensi Klinis)</span>
+    </div>
+    <div class="region-card-grid">
+        {% for reg in data.job1_regions %}
+        <div class="region-card">
+            <div class="region-title">{{ reg.region }}</div>
+            <div class="region-count">{{ "{:,}".format(reg.count) }}</div>
+            <div class="region-pct">{{ reg.pct }}% dari total high-risk</div>
+            <div class="mortality-bar-bg" style="margin-top: 10px;">
+                <div class="mortality-bar-fill" style="width: {{ reg.pct * 4 }}%; background: #38bdf8;"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="two-column-grid">
+        <!-- Job 2: Adverse Outcome & Complication Rate -->
+        <div>
+            <div class="section-header">
+                <span class="section-title">Job 2 · Condition Adverse Outcome Analysis</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Medical Condition</th>
+                            <th>Total Cases</th>
+                            <th>Adverse Cases</th>
+                            <th>Adverse Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data.job2_mortality %}
+                        <tr>
+                            <td><strong style="color: var(--text);">{{ row.condition }}</strong></td>
+                            <td>{{ "{:,}".format(row.total) }}</td>
+                            <td>{{ row.adverse }}</td>
+                            <td>
+                                <div>
+                                    <span style="font-weight: 600; color: {% if row.rate_num >= 35 %}#f87171{% elif row.rate_num >= 25 %}#fbbf24{% else %}#34d399{% endif %};">
+                                        {{ row.rate }}
+                                    </span>
+                                    <div class="mortality-bar-bg">
+                                        <div class="mortality-bar-fill" style="width: {{ row.rate_num }}%; background: {% if row.rate_num >= 35 %}#ef4444{% elif row.rate_num >= 25 %}#f59e0b{% else %}#10b981{% endif %};"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Job 3: Blood Pressure Profiles -->
+        <div>
+            <div class="section-header">
+                <span class="section-title">Job 3 · Systolic BP Profiles by Severity</span>
+            </div>
+            <div class="table-wrap" style="max-height: 480px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Condition</th>
+                            <th>Severity</th>
+                            <th>Avg Systolic BP</th>
+                            <th>Cases</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bp in data.job3_bp %}
+                        <tr>
+                            <td><strong style="color: var(--text);">{{ bp.condition }}</strong></td>
+                            <td>
+                                <span class="badge-sev {{ bp.severity|lower }}">{{ bp.severity }}</span>
+                            </td>
+                            <td>
+                                <span class="bp-val {% if bp.avg_systolic_bp >= 160 %}critical{% elif bp.avg_systolic_bp >= 140 %}warning{% else %}normal{% endif %}">
+                                    {{ "%.2f"|format(bp.avg_systolic_bp) }} mmHg
+                                </span>
+                            </td>
+                            <td>{{ bp.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+# ─────────────────────────────────────────────────────────────────────────────
 # REST API & ROUTES
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route("/")
@@ -1096,6 +1471,13 @@ def storage_benchmarks():
     metrics = get_benchmark_metrics()
     sample_rows = get_full_ehr_sample(limit=15)
     return render_template_string(STORAGE_TEMPLATE, metrics=metrics, sample_rows=sample_rows)
+
+@app.route("/mapreduce")
+@app.route("/modul5")
+def mapreduce_dashboard():
+    """Halaman MapReduce Clinical Analytics (Modul 5)."""
+    results = get_mapreduce_results()
+    return render_template_string(MAPREDUCE_TEMPLATE, data=results)
 
 @app.route("/api/vitals")
 def api_vitals():
@@ -1119,17 +1501,24 @@ def api_storage_benchmarks():
     """Endpoint REST API: Metrik efisiensi penyimpanan dan benchmark kueri."""
     return jsonify(get_benchmark_metrics())
 
+@app.route("/api/mapreduce_results")
+def api_mapreduce_results():
+    """Endpoint REST API: Hasil agregasi MapReduce (3 Job Kasus Klinis)."""
+    return jsonify(get_mapreduce_results())
+
 if __name__ == "__main__":
     print("=" * 75)
-    print(" CLINICIAN MONITORING & STORAGE BENCHMARKS PLATFORM")
+    print(" CLINICIAN MONITORING, STORAGE & MAPREDUCE ANALYTICS PLATFORM")
     print("=" * 75)
     print(" Web Pages:")
     print("   👉 Real-Time ICU Dashboard : http://localhost:5000/")
-    print("   👉 Storage & Benchmarks    : http://localhost:5000/storage  (atau /modul3)")
+    print("   👉 Storage & Benchmarks    : http://localhost:5000/storage   (atau /modul3)")
+    print("   👉 MapReduce Analytics     : http://localhost:5000/mapreduce (atau /modul5)")
     print(" Endpoints:")
     print("   GET /api/vitals")
     print("   GET /api/alerts")
     print("   GET /api/patients")
     print("   GET /api/storage_benchmarks")
+    print("   GET /api/mapreduce_results")
     print("=" * 75)
     app.run(host="0.0.0.0", port=5000, debug=False)

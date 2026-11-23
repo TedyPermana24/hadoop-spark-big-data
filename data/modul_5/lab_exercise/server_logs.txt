@@ -1,0 +1,12 @@
+2026-11-23 08:14:02 INFO /api/vitals 200 45ms
+2026-11-23 08:14:05 WARN /api/vitals 200 120ms
+2026-11-23 08:14:10 ERROR /api/patients 500 310ms
+2026-11-23 08:14:15 INFO /api/alerts 200 30ms
+2026-11-23 08:14:20 INFO /api/vitals 200 40ms
+2026-11-23 08:14:22 ERROR /api/storage 500 450ms
+2026-11-23 08:14:25 INFO /api/vitals 200 35ms
+2026-11-23 08:14:30 WARN /api/alerts 404 15ms
+2026-11-23 08:14:35 INFO /api/vitals 200 42ms
+2026-11-23 08:14:40 ERROR /api/patients 500 290ms
+2026-11-23 08:14:45 INFO /api/storage 200 55ms
+2026-11-23 08:14:50 WARN /api/vitals 404 18ms

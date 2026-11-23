@@ -1,0 +1,5 @@
+P001	Coronary Artery Disease	Severe
+P002	Type 2 Diabetes	Moderate
+P003	Hypertension	Severe
+P004	Chronic Kidney Disease	Mild
+P005	Lung Cancer	Severe

@@ -1,0 +1,31 @@
+Condition_Severity	Avg_Systolic_BP	Count
+Coronary Artery Disease_Severe	164.63	215
+Hypertension_Severe	164.15	210
+Chronic Kidney Disease_Severe	163.90	227
+Chronic Kidney Disease_Moderate	162.32	466
+Coronary Artery Disease_Moderate	162.04	466
+Coronary Artery Disease_Mild	161.72	522
+Hypertension_Moderate	161.15	439
+Chronic Kidney Disease_Mild	160.49	534
+Hypertension_Mild	159.58	523
+Type 2 Diabetes_Severe	144.51	235
+Type 2 Diabetes_Moderate	144.04	444
+Lung Cancer_Severe	142.73	224
+Lung Cancer_Moderate	141.10	433
+Lung Cancer_Mild	140.61	532
+Type 2 Diabetes_Mild	140.60	548
+Multiple Sclerosis_Severe	138.79	116
+Multiple Sclerosis_Moderate	137.12	287
+Depression_Severe	137.00	141
+GERD_Moderate	136.22	264
+GERD_Mild	135.57	315
+Back Pain_Moderate	135.21	322
+Multiple Sclerosis_Mild	135.13	322
+Asthma_Severe	135.01	118
+GERD_Severe	133.65	121
+Depression_Moderate	132.65	348
+Back Pain_Severe	131.34	143
+Depression_Mild	131.18	382
+Back Pain_Mild	131.11	389
+Asthma_Moderate	130.78	323
+Asthma_Mild	130.14	389
