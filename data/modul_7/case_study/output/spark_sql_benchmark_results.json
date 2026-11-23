@@ -1,0 +1,177 @@
+{
+  "total_admissions": 801,
+  "total_er_admissions": 341,
+  "overall_er_pct": 42.57,
+  "peak_admission_day": "Saturday",
+  "highest_readmission_dept": "Intensive Care Unit",
+  "highest_readmission_rate": 30.36,
+  "admissions_by_day": [
+    {
+      "day_of_week": "Saturday",
+      "total_admissions": 147,
+      "er_admissions": 66,
+      "er_pct": 44.9
+    },
+    {
+      "day_of_week": "Sunday",
+      "total_admissions": 118,
+      "er_admissions": 53,
+      "er_pct": 44.92
+    },
+    {
+      "day_of_week": "Monday",
+      "total_admissions": 111,
+      "er_admissions": 43,
+      "er_pct": 38.74
+    },
+    {
+      "day_of_week": "Friday",
+      "total_admissions": 103,
+      "er_admissions": 49,
+      "er_pct": 47.57
+    },
+    {
+      "day_of_week": "Tuesday",
+      "total_admissions": 104,
+      "er_admissions": 39,
+      "er_pct": 37.5
+    },
+    {
+      "day_of_week": "Wednesday",
+      "total_admissions": 95,
+      "er_admissions": 42,
+      "er_pct": 44.21
+    },
+    {
+      "day_of_week": "Thursday",
+      "total_admissions": 123,
+      "er_admissions": 49,
+      "er_pct": 39.84
+    }
+  ],
+  "readmissions_by_dept": [
+    {
+      "department": "Intensive Care Unit",
+      "total_encounters": 112,
+      "readmission_count": 34,
+      "readmission_rate_pct": 30.36,
+      "avg_stay_days": 7.4
+    },
+    {
+      "department": "Emergency Room",
+      "total_encounters": 341,
+      "readmission_count": 77,
+      "readmission_rate_pct": 22.58,
+      "avg_stay_days": 2.0
+    },
+    {
+      "department": "Pulmonology Clinic",
+      "total_encounters": 75,
+      "readmission_count": 7,
+      "readmission_rate_pct": 9.33,
+      "avg_stay_days": 7.6
+    },
+    {
+      "department": "Cardiology Ward",
+      "total_encounters": 153,
+      "readmission_count": 14,
+      "readmission_rate_pct": 9.15,
+      "avg_stay_days": 7.5
+    },
+    {
+      "department": "Inpatient Surgery",
+      "total_encounters": 120,
+      "readmission_count": 10,
+      "readmission_rate_pct": 8.33,
+      "avg_stay_days": 7.9
+    }
+  ],
+  "unified_join_top": [
+    {
+      "condition": "Chronic Kidney Disease",
+      "severity": "Severe",
+      "cohort_size": 23,
+      "mean_systolic_bp": 168.5,
+      "readmission_pct": 47.83,
+      "mean_los_days": 4.2
+    },
+    {
+      "condition": "GERD",
+      "severity": "Mild",
+      "cohort_size": 20,
+      "mean_systolic_bp": 135.5,
+      "readmission_pct": 35.0,
+      "mean_los_days": 5.2
+    },
+    {
+      "condition": "Back Pain",
+      "severity": "Mild",
+      "cohort_size": 31,
+      "mean_systolic_bp": 132.5,
+      "readmission_pct": 29.03,
+      "mean_los_days": 5.5
+    },
+    {
+      "condition": "GERD",
+      "severity": "Moderate",
+      "cohort_size": 21,
+      "mean_systolic_bp": 141.7,
+      "readmission_pct": 28.57,
+      "mean_los_days": 3.4
+    },
+    {
+      "condition": "Hypertension",
+      "severity": "Moderate",
+      "cohort_size": 23,
+      "mean_systolic_bp": 156.8,
+      "readmission_pct": 26.09,
+      "mean_los_days": 4.1
+    },
+    {
+      "condition": "Lung Cancer",
+      "severity": "Moderate",
+      "cohort_size": 32,
+      "mean_systolic_bp": 142.0,
+      "readmission_pct": 25.0,
+      "mean_los_days": 5.1
+    },
+    {
+      "condition": "Back Pain",
+      "severity": "Severe",
+      "cohort_size": 13,
+      "mean_systolic_bp": 132.8,
+      "readmission_pct": 23.08,
+      "mean_los_days": 6.4
+    },
+    {
+      "condition": "Chronic Kidney Disease",
+      "severity": "Moderate",
+      "cohort_size": 42,
+      "mean_systolic_bp": 164.9,
+      "readmission_pct": 21.43,
+      "mean_los_days": 5.1
+    },
+    {
+      "condition": "Type 2 Diabetes",
+      "severity": "Mild",
+      "cohort_size": 58,
+      "mean_systolic_bp": 137.9,
+      "readmission_pct": 20.69,
+      "mean_los_days": 5.4
+    },
+    {
+      "condition": "Coronary Artery Disease",
+      "severity": "Moderate",
+      "cohort_size": 35,
+      "mean_systolic_bp": 159.5,
+      "readmission_pct": 20.0,
+      "mean_los_days": 6.2
+    }
+  ],
+  "query_latency_ms": 98.25,
+  "catalyst_optimizations": [
+    "Predicate Pushdown: Memfilter 'condition' dan 'department' pada tingkat pembacaan data sumber.",
+    "Column Pruning: Hanya memproyeksikan 7 dari 30 atribut gabungan di memori.",
+    "Whole-Stage Code Generation: Tungsten Engine mengompilasi rencana fisik menjadi bytecode JVM tunggal."
+  ]
+}

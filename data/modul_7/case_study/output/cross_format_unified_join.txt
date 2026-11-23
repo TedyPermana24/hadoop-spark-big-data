@@ -1,0 +1,11 @@
+Condition	Severity	Cohort_Size	Mean_Systolic_BP	Readmission_Rate	Mean_LOS_Days
+Chronic Kidney Disease	Severe	23	168.5 mmHg	47.83%	4.2 days
+GERD	Mild	20	135.5 mmHg	35.0%	5.2 days
+Back Pain	Mild	31	132.5 mmHg	29.03%	5.5 days
+GERD	Moderate	21	141.7 mmHg	28.57%	3.4 days
+Hypertension	Moderate	23	156.8 mmHg	26.09%	4.1 days
+Lung Cancer	Moderate	32	142.0 mmHg	25.0%	5.1 days
+Back Pain	Severe	13	132.8 mmHg	23.08%	6.4 days
+Chronic Kidney Disease	Moderate	42	164.9 mmHg	21.43%	5.1 days
+Type 2 Diabetes	Mild	58	137.9 mmHg	20.69%	5.4 days
+Coronary Artery Disease	Moderate	35	159.5 mmHg	20.0%	6.2 days
