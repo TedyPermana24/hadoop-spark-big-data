@@ -1,0 +1,4 @@
+Severity	Total_Patients	Avg_Systolic_BP	Avg_Cholesterol	Adverse_Cases	Adverse_Rate_Pct
+Severe	224	142.73	212.0	113	50.45%
+Moderate	433	141.1	210.71	170	39.26%
+Mild	532	140.61	208.46	169	31.77%

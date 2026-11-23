@@ -1,0 +1,76 @@
+{
+  "total_notes": 20,
+  "suspicious_notes": 14,
+  "suspicious_pct": 70.0,
+  "pathology_patterns": [
+    {
+      "keyword": "malignant",
+      "count": 9
+    },
+    {
+      "keyword": "carcinoma",
+      "count": 7
+    },
+    {
+      "keyword": "adenocarcinoma",
+      "count": 6
+    },
+    {
+      "keyword": "benign",
+      "count": 6
+    },
+    {
+      "keyword": "neoplasm",
+      "count": 4
+    },
+    {
+      "keyword": "suspicious",
+      "count": 4
+    },
+    {
+      "keyword": "metastatic",
+      "count": 3
+    },
+    {
+      "keyword": "invasion",
+      "count": 2
+    },
+    {
+      "keyword": "necrosis",
+      "count": 2
+    }
+  ],
+  "lung_cancer_cohort": [
+    {
+      "severity": "Severe",
+      "total_patients": 224,
+      "avg_systolic_bp": 142.73,
+      "avg_cholesterol": 212.0,
+      "adverse_cases": 113,
+      "adverse_rate_pct": 50.45
+    },
+    {
+      "severity": "Moderate",
+      "total_patients": 433,
+      "avg_systolic_bp": 141.1,
+      "avg_cholesterol": 210.71,
+      "adverse_cases": 170,
+      "adverse_rate_pct": 39.26
+    },
+    {
+      "severity": "Mild",
+      "total_patients": 532,
+      "avg_systolic_bp": 140.61,
+      "avg_cholesterol": 208.46,
+      "adverse_cases": 169,
+      "adverse_rate_pct": 31.77
+    }
+  ],
+  "total_cancer_patients": 1189,
+  "total_adverse_cases": 452,
+  "overall_adverse_rate": 38.02,
+  "latency_mapreduce_ms": 4465.28,
+  "latency_spark_ms": 97.68,
+  "speedup": 45.71,
+  "timestamp": "2026-11-24 01:33:30"
+}

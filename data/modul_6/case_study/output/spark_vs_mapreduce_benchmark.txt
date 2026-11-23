@@ -1,0 +1,3 @@
+Framework	Architecture	Latency_ms	Speedup
+Hadoop MapReduce	Disk-Based Spill & Shuffle	4465.28	1.0x (Baseline)
+Apache Spark	In-Memory RDD/Catalyst	97.68	45.71x Faster

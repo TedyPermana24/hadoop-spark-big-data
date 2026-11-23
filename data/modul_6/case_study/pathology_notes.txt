@@ -1,0 +1,20 @@
+P-1001 | Biopsy right lung upper lobe: invasive adenocarcinoma with acinar pattern, malignant neoplasm, positive surgical margins.
+P-1002 | Fine needle aspiration: benign pulmonary tissue, reactive bronchial epithelial cells, no malignancy detected.
+P-1003 | Core needle biopsy: poorly differentiated squamous cell carcinoma, highly suspicious necrotic lesion, necrotic tumor cells present.
+P-1004 | Bronchoscopy biopsy: atypical cellular proliferation, highly suspicious for non-small cell lung carcinoma, high mitotic index.
+P-1005 | Thoracoscopic lung biopsy: metastatic adenocarcinoma, malignant pleural involvement, positive lymphovascular invasion.
+P-1006 | Wedge resection left lung: benign hamartoma, mature cartilage and fibromyxoid stroma, negative surgical margins.
+P-1007 | Transbronchial biopsy: small cell neuroendocrine carcinoma, extensive necrosis, malignant cells confirmed, high grade.
+P-1008 | Mediastinal biopsy: non-small cell lung cancer, stage III adenocarcinoma with invasive vascular permeation.
+P-1009 | Subpleural nodule biopsy: granulomatous inflammation, benign chronic changes, negative for malignancy.
+P-1010 | Endobronchial ultrasound biopsy: malignant epithelial neoplasm consistent with metastatic squamous cell carcinoma.
+P-1011 | CT-guided lung biopsy: invasive adenocarcinoma, EGFR mutation suspicious, malignant glandular formation.
+P-1012 | Bronchial washing cytology: benign columnar epithelial cells and alveolar macrophages, no atypical cells.
+P-1013 | Pleural biopsy: malignant mesothelioma, epithelioid type, prominent invasion into subpleural fat tissue.
+P-1014 | Lung mass biopsy: large cell neuroendocrine carcinoma, aggressive mitotic rate, extensive necrotic areas.
+P-1015 | Sputum cytology: benign inflammatory cellular debris, chronic bronchitis pattern, negative for neoplasm.
+P-1016 | Right lower lobe needle biopsy: invasive adenocarcinoma, solid variant, malignant infiltrate into bronchial wall.
+P-1017 | Left upper lobe biopsy: poorly differentiated carcinoma, highly suspicious infiltrative borders, malignant.
+P-1018 | Transthoracic biopsy: benign pulmonary tuberculoma with caseous necrosis, negative for tumor cells.
+P-1019 | Paratracheal lymph node biopsy: metastatic adenocarcinoma consistent with primary lung neoplasm, malignant.
+P-1020 | Endobronchial mass biopsy: squamous cell carcinoma, keratinizing type, high grade malignancy with positive margins.

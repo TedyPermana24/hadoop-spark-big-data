@@ -1,0 +1,4 @@
+Hadoop is an open source framework for distributed storage and processing.
+Spark is a fast in-memory data processing engine.
+Hadoop provides HDFS and Spark provides fast processing.
+Big data is growing every day with Hadoop and Spark together.

@@ -1,0 +1,10 @@
+Pathology_Keyword	Occurrence_Count
+malignant	9
+carcinoma	7
+adenocarcinoma	6
+benign	6
+neoplasm	4
+suspicious	4
+metastatic	3
+invasion	2
+necrosis	2

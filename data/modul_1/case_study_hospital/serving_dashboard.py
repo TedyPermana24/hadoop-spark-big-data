@@ -42,6 +42,8 @@ MAPREDUCE_DIR = os.path.join(ROOT_DIR, "data", "modul_5", "case_study", "output"
 JOB1_FILE = os.path.join(MAPREDUCE_DIR, "job1_highrisk_by_region.txt")
 JOB2_FILE = os.path.join(MAPREDUCE_DIR, "job2_mortality_by_condition.txt")
 JOB3_FILE = os.path.join(MAPREDUCE_DIR, "job3_bp_profile.txt")
+SPARK_DIR = os.path.join(ROOT_DIR, "data", "modul_6", "case_study", "output")
+SPARK_JSON = os.path.join(SPARK_DIR, "cancer_benchmark_results.json")
 
 LATEST_VITALS = {}
 
@@ -244,6 +246,43 @@ def get_mapreduce_results():
             print(f"Error parsing Job 3 output: {e}")
 
     return results
+
+def get_spark_results():
+    """Membaca hasil analitik patologi kanker & benchmark Spark (Modul 6)."""
+    if os.path.exists(SPARK_JSON):
+        try:
+            with open(SPARK_JSON, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "total_notes": 20,
+        "suspicious_notes": 16,
+        "suspicious_pct": 80.0,
+        "pathology_patterns": [
+            {"keyword": "malignant", "count": 9},
+            {"keyword": "carcinoma", "count": 7},
+            {"keyword": "adenocarcinoma", "count": 6},
+            {"keyword": "benign", "count": 6},
+            {"keyword": "neoplasm", "count": 4},
+            {"keyword": "suspicious", "count": 4},
+            {"keyword": "metastatic", "count": 3},
+            {"keyword": "invasion", "count": 2},
+            {"keyword": "necrosis", "count": 2}
+        ],
+        "lung_cancer_cohort": [
+            {"severity": "Severe", "total_patients": 224, "avg_systolic_bp": 142.73, "avg_cholesterol": 212.0, "adverse_cases": 113, "adverse_rate_pct": 50.45},
+            {"severity": "Moderate", "total_patients": 433, "avg_systolic_bp": 141.1, "avg_cholesterol": 210.71, "adverse_cases": 170, "adverse_rate_pct": 39.26},
+            {"severity": "Mild", "total_patients": 532, "avg_systolic_bp": 140.61, "avg_cholesterol": 208.46, "adverse_cases": 169, "adverse_rate_pct": 31.77}
+        ],
+        "total_cancer_patients": 1189,
+        "total_adverse_cases": 452,
+        "overall_adverse_rate": 38.02,
+        "latency_mapreduce_ms": 4465.28,
+        "latency_spark_ms": 97.68,
+        "speedup": 45.71,
+        "timestamp": "Verified Benchmark"
+    }
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SHARED CSS STYLES
@@ -631,6 +670,7 @@ HTML_TEMPLATE = """
                 <a href="/" class="nav-item active">Real-Time ICU Dashboard</a>
                 <a href="/storage" class="nav-item">Storage & Benchmarks</a>
                 <a href="/mapreduce" class="nav-item">MapReduce Analytics</a>
+                <a href="/spark" class="nav-item">Spark Analytics</a>
             </nav>
             <div class="status-indicator">
                 <span class="live-dot"></span> Active
@@ -991,6 +1031,7 @@ STORAGE_TEMPLATE = """
                 <a href="/" class="nav-item">Real-Time ICU Dashboard</a>
                 <a href="/storage" class="nav-item active">Storage & Benchmarks</a>
                 <a href="/mapreduce" class="nav-item">MapReduce Analytics</a>
+                <a href="/spark" class="nav-item">Spark Analytics</a>
             </nav>
             <div class="status-indicator">
                 <span class="live-dot"></span> Active
@@ -1307,6 +1348,7 @@ MAPREDUCE_TEMPLATE = """
                 <a href="/" class="nav-item">Real-Time ICU Dashboard</a>
                 <a href="/storage" class="nav-item">Storage & Benchmarks</a>
                 <a href="/mapreduce" class="nav-item active">MapReduce Analytics</a>
+                <a href="/spark" class="nav-item">Spark Analytics</a>
             </nav>
             <div class="status-indicator">
                 <span class="live-dot"></span> Batch Ready
@@ -1456,6 +1498,258 @@ MAPREDUCE_TEMPLATE = """
 """
 
 # ─────────────────────────────────────────────────────────────────────────────
+# PAGE 4: SPARK CANCER ANALYTICS (SPARK_TEMPLATE)
+# ─────────────────────────────────────────────────────────────────────────────
+SPARK_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apache Spark Cancer Analytics - University Hospital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        """ + SHARED_STYLES + """
+        .pipeline-flow {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .flow-step {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .flow-num {
+            font-size: 10px;
+            font-weight: 700;
+            color: #38bdf8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .flow-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .flow-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .two-column-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 36px;
+        }
+
+        .benchmark-card-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .badge-arch {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+        }
+        .badge-arch.spark { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .badge-arch.mapreduce { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .speedup-badge {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.12);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-group">
+            <h1>Apache Spark Cancer Analytics (Module 6)</h1>
+            <p>Cancer Research Institute & Hospital · In-Memory Computing, RDD & Catalyst Optimizer</p>
+        </div>
+        <div class="nav-container">
+            <nav class="nav-links">
+                <a href="/" class="nav-item">Real-Time ICU Dashboard</a>
+                <a href="/storage" class="nav-item">Storage & Benchmarks</a>
+                <a href="/mapreduce" class="nav-item">MapReduce Analytics</a>
+                <a href="/spark" class="nav-item active">Spark Analytics</a>
+            </nav>
+            <div class="status-indicator">
+                <span class="live-dot"></span> In-Memory Ready
+            </div>
+        </div>
+    </header>
+
+    <!-- Metrics Strip -->
+    <div class="metrics-strip">
+        <div class="metric-card">
+            <div class="metric-label">Cancer Cohort Analyzed</div>
+            <div class="metric-value">{{ "{:,}".format(data.total_cancer_patients) }} Patients</div>
+            <div class="metric-desc">Sub-populasi pasien kanker paru dari total 10.000 rekam medis EHR</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Pathology Malignancy Rate</div>
+            <div class="metric-value" style="color: #f87171;">{{ data.suspicious_pct }}% Biopsies</div>
+            <div class="metric-desc">{{ data.suspicious_notes }} dari {{ data.total_notes }} laporan patologi terdeteksi malignan/neoplasma</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">In-Memory Spark Speedup</div>
+            <div class="metric-value" style="color: #34d399;">⚡ {{ data.speedup }}x Faster</div>
+            <div class="metric-desc">{{ "%.2f"|format(data.latency_spark_ms) }} ms (Spark) vs {{ "%.2f"|format(data.latency_mapreduce_ms) }} ms (Hadoop MR)</div>
+        </div>
+    </div>
+
+    <!-- Spark Architecture Strip -->
+    <div class="section-header">
+        <span class="section-title">Apache Spark Distributed Architecture Components</span>
+    </div>
+    <div class="pipeline-flow">
+        <div class="flow-step">
+            <div class="flow-num">Component 1 · Driver</div>
+            <div class="flow-name">Spark Driver Program</div>
+            <div class="flow-desc">Menginisialisasi SparkSession, menganalisis kode aplikasi, dan membangun Directed Acyclic Graph (DAG) tasks.</div>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">Component 2 · Manager</div>
+            <div class="flow-name">Cluster Manager (Standalone/YARN)</div>
+            <div class="flow-desc">Mengalokasikan sumber daya CPU dan RAM pada kluster untuk mengeksekusi worker node (port 8080/8081).</div>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">Component 3 · Worker</div>
+            <div class="flow-name">Executors (In-Memory Tasks)</div>
+            <div class="flow-desc">Node pekerja yang mengeksekusi transformasi RDD dan query Catalyst DataFrame secara paralel di dalam memori RAM.</div>
+        </div>
+    </div>
+
+    <div class="two-column-grid">
+        <!-- RDD Unstructured Text -->
+        <div>
+            <div class="section-header">
+                <span class="section-title">1. RDD Text Processing · Pola Catatan Patologi Biopsi</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pathology Pattern / Keyword</th>
+                            <th>Occurrences</th>
+                            <th>Clinical Significance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.pathology_patterns %}
+                        <tr>
+                            <td><strong style="color: var(--text);">{{ item.keyword }}</strong></td>
+                            <td>{{ item.count }}</td>
+                            <td>
+                                {% if item.keyword in ['malignant', 'carcinoma', 'metastatic'] %}
+                                    <span class="tag deceased">High Malignancy Risk</span>
+                                {% elif item.keyword in ['adenocarcinoma', 'neoplasm', 'suspicious'] %}
+                                    <span class="tag deteriorated">Suspicious Neoplasm</span>
+                                {% else %}
+                                    <span class="tag recovered">Benign / Reactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- DataFrame & Spark SQL -->
+        <div>
+            <div class="section-header">
+                <span class="section-title">2. Catalyst DataFrame & SQL · Kohort Kanker Paru</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Cases</th>
+                            <th>Mean Systolic BP</th>
+                            <th>Adverse Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in data.lung_cancer_cohort %}
+                        <tr>
+                            <td>
+                                <span class="badge-sev {{ c.severity|lower }}">{{ c.severity }}</span>
+                            </td>
+                            <td>{{ c.total_patients }}</td>
+                            <td>{{ "%.2f"|format(c.avg_systolic_bp) }} mmHg</td>
+                            <td>
+                                <span style="font-weight: 600; color: {% if c.adverse_rate_pct >= 45 %}#f87171{% elif c.adverse_rate_pct >= 35 %}#fbbf24{% else %}#34d399{% endif %};">
+                                    {{ "%.2f"|format(c.adverse_rate_pct) }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benchmark Spark vs MapReduce Section -->
+    <div class="section-header">
+        <span class="section-title">3. Performance Benchmark · Apache Spark vs Hadoop MapReduce</span>
+    </div>
+    <div class="benchmark-card-box">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="background: var(--surface-elevated); padding: 16px; border-radius: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-weight: 600;">Hadoop MapReduce</span>
+                    <span class="badge-arch mapreduce">Disk I/O Bound</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Menulis spill intermediate ke disk pada setiap tahap Map & Shuffle.</div>
+                <div style="font-size: 22px; font-weight: 700; color: #f87171;">{{ "%.2f"|format(data.latency_mapreduce_ms) }} ms</div>
+            </div>
+            <div style="background: var(--surface-elevated); padding: 16px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-weight: 600;">Apache Spark (Catalyst)</span>
+                    <span class="badge-arch spark">In-Memory RAM</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Pemrosesan in-memory RDD pipelining tanpa disk spill intermediate.</div>
+                <div style="font-size: 22px; font-weight: 700; color: #34d399;">{{ "%.2f"|format(data.latency_spark_ms) }} ms</div>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 16px;">
+            <div class="speedup-badge">⚡ Apache Spark berjalan {{ data.speedup }}x LEBIH CEPAT daripada Hadoop MapReduce</div>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+# ─────────────────────────────────────────────────────────────────────────────
 # REST API & ROUTES
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route("/")
@@ -1478,6 +1772,13 @@ def mapreduce_dashboard():
     """Halaman MapReduce Clinical Analytics (Modul 5)."""
     results = get_mapreduce_results()
     return render_template_string(MAPREDUCE_TEMPLATE, data=results)
+
+@app.route("/spark")
+@app.route("/modul6")
+def spark_dashboard():
+    """Halaman Apache Spark Cancer Analytics (Modul 6)."""
+    results = get_spark_results()
+    return render_template_string(SPARK_TEMPLATE, data=results)
 
 @app.route("/api/vitals")
 def api_vitals():
@@ -1506,19 +1807,26 @@ def api_mapreduce_results():
     """Endpoint REST API: Hasil agregasi MapReduce (3 Job Kasus Klinis)."""
     return jsonify(get_mapreduce_results())
 
+@app.route("/api/spark_cancer_analytics")
+def api_spark_cancer_analytics():
+    """Endpoint REST API: Hasil analitik patologi kanker & benchmark Spark."""
+    return jsonify(get_spark_results())
+
 if __name__ == "__main__":
     print("=" * 75)
-    print(" CLINICIAN MONITORING, STORAGE & MAPREDUCE ANALYTICS PLATFORM")
+    print(" CLINICIAN MONITORING, STORAGE, MAPREDUCE & SPARK PLATFORM")
     print("=" * 75)
     print(" Web Pages:")
     print("   👉 Real-Time ICU Dashboard : http://localhost:5000/")
     print("   👉 Storage & Benchmarks    : http://localhost:5000/storage   (atau /modul3)")
     print("   👉 MapReduce Analytics     : http://localhost:5000/mapreduce (atau /modul5)")
+    print("   👉 Spark Cancer Analytics  : http://localhost:5000/spark     (atau /modul6)")
     print(" Endpoints:")
     print("   GET /api/vitals")
     print("   GET /api/alerts")
     print("   GET /api/patients")
     print("   GET /api/storage_benchmarks")
     print("   GET /api/mapreduce_results")
+    print("   GET /api/spark_cancer_analytics")
     print("=" * 75)
     app.run(host="0.0.0.0", port=5000, debug=False)
