@@ -168,7 +168,7 @@
       "mean_los_days": 6.2
     }
   ],
-  "query_latency_ms": 98.25,
+  "query_latency_ms": 154.38,
   "catalyst_optimizations": [
     "Predicate Pushdown: Memfilter 'condition' dan 'department' pada tingkat pembacaan data sumber.",
     "Column Pruning: Hanya memproyeksikan 7 dari 30 atribut gabungan di memori.",
