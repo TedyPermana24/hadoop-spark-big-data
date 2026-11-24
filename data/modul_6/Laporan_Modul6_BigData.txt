@@ -114,7 +114,7 @@ Tahap ini membandingkan latensi pemrosesan data antara kerangka kerja Apache Spa
 Hasil pengujian membuktikan bahwa eksekusi agregasi pada Hadoop MapReduce membutuhkan waktu rata-rata 4.465,28 ms karena harus melakukan penulisan berkas sementara (spill) ke disk fisik pada setiap pergantian tahap. Sebaliknya, Apache Spark menyelesaikan komputasi yang setara hanya dalam waktu 97,68 ms karena seluruh operasi transformasi RDD dan DataFrame diproses secara langsung di dalam memori RAM. Hal ini membuktikan bahwa Apache Spark menghasilkan peningkatan kecepatan komputasi (speedup factor) sebesar 45,71 kali lebih cepat dibandingkan Hadoop MapReduce.
 
 5.	Menampilkan Hasil melalui Serving Dashboard Terpadu
-Seluruh hasil pemrosesan analitik patologi dan benchmark kecepatan Spark diintegrasikan ke dalam antarmuka web dashboard klinisi pada URL http://localhost:5000/spark serta REST API pada endpoint http://localhost:5000/api/spark_cancer_analytics. Halaman Spark Analytics menyajikan:
+Seluruh hasil pemrosesan analitik patologi dan benchmark kecepatan Spark diintegrasikan ke dalam antarmuka web dashboard klinisi pada URL http://localhost:5000/spark (atau http://localhost:5015/spark) serta REST API pada endpoint http://localhost:5000/api/spark_cancer_analytics (atau http://localhost:5015/api/spark_cancer_analytics). Halaman Spark Analytics menyajikan:
 1.	Kartu indikator kinerja utama (KPI) klinis (1.189 pasien kanker paru teranalisis, 80,0% tingkat deteksi patologi keganasan, dan akselerasi performa 45,71x lebih cepat).
 2.	Diagram komponen arsitektur Apache Spark (Driver, Standalone Cluster Manager, dan Executors).
 3.	Tabel visualisasi hasil ekstraksi RDD terhadap pola kata kunci patologi beserta signifikansi klinisnya.

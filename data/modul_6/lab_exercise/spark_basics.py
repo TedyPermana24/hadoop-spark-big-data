@@ -43,10 +43,17 @@ def main():
     print(" 3. TASK 4: DATAFRAME FROM CSV FILE")
     print("=" * 70)
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(base_dir, "data.csv")
+    local_csv = os.path.join(base_dir, "data.csv")
+    hdfs_csv = "hdfs://namenode:8020/user/student/data.csv"
     
-    # Baca CSV dengan header dan inferSchema
-    df = spark.read.csv(csv_path, header=True, inferSchema=True)
+    # Prioritaskan pembacaan HDFS jika kluster aktif, fallback ke berkas lokal
+    try:
+        df = spark.read.csv(hdfs_csv, header=True, inferSchema=True)
+        print(f"[✓] Berhasil membaca dataset dari HDFS: {hdfs_csv}")
+    except Exception:
+        df = spark.read.csv(f"file://{local_csv}" if not local_csv.startswith("file://") else local_csv, header=True, inferSchema=True)
+        print(f"[✓] Berhasil membaca dataset dari file lokal: {local_csv}")
+    
     print("[✓] Schema DataFrame:")
     df.printSchema()
     print("[✓] Menampilkan 5 baris pertama data:")
@@ -69,8 +76,14 @@ def main():
     print("=" * 70)
     print(" 5. SAMPLE CODE: WORD COUNT WITH RDD")
     print("=" * 70)
-    sample_txt_path = os.path.join(base_dir, "sample.txt")
-    text_rdd = sc.textFile(sample_txt_path)
+    hdfs_sample = "hdfs://namenode:8020/user/student/sample.txt"
+    local_sample = os.path.join(base_dir, "sample.txt")
+    try:
+        text_rdd = sc.textFile(hdfs_sample)
+        print(f"[✓] Membaca teks masukan dari HDFS: {hdfs_sample}")
+    except Exception:
+        text_rdd = sc.textFile(f"file://{local_sample}")
+        print(f"[✓] Membaca teks masukan dari file lokal: {local_sample}")
     
     word_counts = (text_rdd
                    .flatMap(lambda line: line.split())

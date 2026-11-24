@@ -1813,14 +1813,27 @@ def api_spark_cancer_analytics():
     return jsonify(get_spark_results())
 
 if __name__ == "__main__":
+    import socket
+    port = int(os.environ.get("PORT", 5000))
+    # Test if requested port is bindable, otherwise find open alternative
+    for test_port in [port, 5015, 8000, 8085]:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind(('0.0.0.0', test_port))
+            s.close()
+            port = test_port
+            break
+        except Exception:
+            continue
+
     print("=" * 75)
     print(" CLINICIAN MONITORING, STORAGE, MAPREDUCE & SPARK PLATFORM")
     print("=" * 75)
     print(" Web Pages:")
-    print("   👉 Real-Time ICU Dashboard : http://localhost:5000/")
-    print("   👉 Storage & Benchmarks    : http://localhost:5000/storage   (atau /modul3)")
-    print("   👉 MapReduce Analytics     : http://localhost:5000/mapreduce (atau /modul5)")
-    print("   👉 Spark Cancer Analytics  : http://localhost:5000/spark     (atau /modul6)")
+    print(f"   👉 Real-Time ICU Dashboard : http://localhost:{port}/")
+    print(f"   👉 Storage & Benchmarks    : http://localhost:{port}/storage   (atau /modul3)")
+    print(f"   👉 MapReduce Analytics     : http://localhost:{port}/mapreduce (atau /modul5)")
+    print(f"   👉 Spark Cancer Analytics  : http://localhost:{port}/spark     (atau /modul6)")
     print(" Endpoints:")
     print("   GET /api/vitals")
     print("   GET /api/alerts")
@@ -1829,4 +1842,5 @@ if __name__ == "__main__":
     print("   GET /api/mapreduce_results")
     print("   GET /api/spark_cancer_analytics")
     print("=" * 75)
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=False)
+
