@@ -1,0 +1,6 @@
+Department	Total_Encounters	Readmission_Count	Readmission_Rate	Avg_Stay_Days
+Intensive Care Unit	112	34	30.36%	7.4 days
+Emergency Room	341	77	22.58%	2.0 days
+Pulmonology Clinic	75	7	9.33%	7.6 days
+Cardiology Ward	153	14	9.15%	7.5 days
+Inpatient Surgery	120	10	8.33%	7.9 days

@@ -1,0 +1,15 @@
+================================================================================
+SCHEMA EVOLUTION ANALYSIS: FHIR JSON (SEMI-STRUCTURED) VS RELATIONAL DDL (CSV)
+================================================================================
+1. Karakteristik FHIR JSON Schema Evolution:
+   - Rumah Sakit yang baru diakuisisi memperkenalkan atribut baru secara asinkron:
+     * 'acquired_clinic_code' : Kode fasilitas klinik cabang baru.
+     * 'triage_score_mews'   : Nilai skor peringatan dini sepsis.
+     * 'hl7_message_id'      : Identitas pesan integrasi HL7 v2.x.
+   - Spark SQL membaca JSON menggunakan skema toleran (Null-safe dynamic inference):
+     Kolom yang hilang pada rekaman lama otomatis terisi NULL tanpa memicu error schema mismatch.
+
+2. Perbandingan dengan Format Relasional/CSV Kaku:
+   - Format relasional membutuhkan migrasi skema fisik (ALTER TABLE ADD COLUMN) yang mahal
+     serta risiko downtime pada sistem operasional rumah sakit.
+   - Spark SQL menyediakan kapabilitas menyatukan keduanya dalam satu kueri terpadu.
